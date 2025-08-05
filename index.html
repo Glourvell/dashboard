@@ -22,8 +22,8 @@
             <div class="login-container">
                 <div class="login-card">
                     <div class="login-header">
-                        <h1>Printspoint Dashboard</h1>
-                        <p>Access your sales and payment tracking dashboard</p>
+                        <h1 >Printspoint Dashboard</h1>
+                        <p>Printspoint Designers Sales Dashboard</p>
                     </div>
                     
                     <div class="tabs">
@@ -67,7 +67,7 @@
                                 <label for="register-role">Role</label>
                                 <select id="register-role" required>
                                     <option value="user">User</option>
-                                    <option value="admin">Admin</option>
+                                    <!-- <option value="admin">Admin</option> -->
                                 </select>
                             </div>
                             <button type="submit" class="btn btn-primary full-width">Create Account</button>
@@ -84,7 +84,7 @@
                     <div class="header-left">
                         <i class="fas fa-user"></i>
                         <div>
-                            <h1>Printspoint Dashboard</h1>
+                            <h1>Sales Dashboard</h1>
                             <p id="user-welcome">Welcome, User</p>
                         </div>
                     </div>
@@ -128,7 +128,7 @@
                                     <option value="Laser Printing">Laser Printing</option>
                                     <option value="Screen">Screen</option>
                                     <option value="Poster">Poster</option>
-                                    <option value="Paint">Paint</option>
+                                    <option value="Expenses" >Expenses</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -169,7 +169,7 @@
                     
                     <div class="stat-card stat-negative">
                         <div class="stat-header">
-                            <span class="stat-title">Outstanding Debts</span>
+                            <span class="stat-title">Debts & Expenses</span>
                             <i class="fas fa-exclamation-circle"></i>
                         </div>
                         <div class="stat-value" id="user-total-unpaid">$0.00</div>
@@ -315,6 +315,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 id="modal-title">Chart Details</h3>
+                    <h4 id="admin-total-unpaid"></h4>
+
                     <button id="modal-close" class="btn-close">
                         <i class="fas fa-times"></i>
                     </button>
