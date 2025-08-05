@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales & Payment Tracking Dashboard</title>
+    <meta name="description" content="Professional sales and payment tracking dashboard with real-time analytics and comprehensive reporting features.">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen active">
+            <div class="login-container">
+                <div class="login-card">
+                    <div class="login-header">
+                        <h1>Sales Dashboard</h1>
+                        <p>Access your sales and payment tracking dashboard</p>
+                    </div>
+                    
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="login">Login</button>
+                        <button class="tab-btn" data-tab="register">Register</button>
+                    </div>
+                    
+                    <!-- Login Form -->
+                    <div id="login-tab" class="tab-content active">
+                        <form id="login-form">
+                            <div class="form-group">
+                                <label for="login-username">Username</label>
+                                <input type="text" id="login-username" required placeholder="Enter your username">
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password</label>
+                                <input type="password" id="login-password" required placeholder="Enter your password">
+                            </div>
+                            <button type="submit" class="btn btn-primary full-width">Login</button>
+                        </form>
+                        
+                        <!-- <div class="demo-accounts">
+                            <p><strong>Demo Accounts:</strong></p>
+                            <p>Admin: admin / admin123</p>
+                            <p>User: user / user123</p>
+                        </div> -->
+                    </div>
+                    
+                    <!-- Register Form -->
+                    <div id="register-tab" class="tab-content">
+                        <form id="register-form">
+                            <div class="form-group">
+                                <label for="register-username">Username</label>
+                                <input type="text" id="register-username" required placeholder="Choose a username">
+                            </div>
+                            <div class="form-group">
+                                <label for="register-password">Password</label>
+                                <input type="password" id="register-password" required placeholder="Choose a password">
+                            </div>
+                            <div class="form-group">
+                                <label for="register-role">Role</label>
+                                <select id="register-role" required>
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary full-width">Create Account</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Dashboard -->
+        <div id="user-dashboard" class="screen">
+            <header class="dashboard-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <i class="fas fa-user"></i>
+                        <div>
+                            <h1>Sales Dashboard</h1>
+                            <p id="user-welcome">Welcome, User</p>
+                        </div>
+                    </div>
+                    <button id="user-logout" class="btn btn-outline">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </header>
+
+            <main class="dashboard-main">
+                <!-- Add Item Form -->
+                <div id="add-item-section" class="card">
+                    <button id="add-item-btn" class="btn btn-primary full-width">
+                        <i class="fas fa-plus"></i>
+                        Add Item
+                    </button>
+                    
+                    <div id="add-item-form" class="add-item-form hidden">
+                        <div class="form-header">
+                            <h3>Add New Item</h3>
+                            <button id="close-form-btn" class="btn-close">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form id="item-form" class="item-form-grid">
+                            <div class="form-group">
+                                <label for="item-name">Name</label>
+                                <input type="text" id="item-name" required placeholder="Enter name">
+                            </div>
+                            <div class="form-group">
+                                <label for="item-type">Item Type</label>
+                                <select id="item-type" required>
+                                    <option value="">Select item</option>
+                                    <option value="DTF">DTF</option>
+                                    <option value="Shirts">Shirts</option>
+                                    <option value="Mug">Mug</option>
+                                    <option value="Banner">Banner</option>
+                                    <option value="Eulogy">Eulogy</option>
+                                    <option value="Biro">Biro</option>
+                                    <option value="Laser Printing">Laser Printing</option>
+                                    <option value="Screen">Screen</option>
+                                    <option value="Poster">Poster</option>
+                                    <option value="Paint">Paint</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="item-quantity">Quantity</label>
+                                <input type="number" id="item-quantity" min="1" value="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="item-price">Price</label>
+                                <input type="number" id="item-price" min="0" step="0.01" required placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Status</label>
+                                <div class="payment-buttons">
+                                    <button type="button" id="paid-btn" class="btn btn-outline">Paid</button>
+                                    <button type="button" id="unpaid-btn" class="btn btn-primary">Unpaid</button>
+                                </div>
+                            </div>
+                            <div class="form-group full-width">
+                                <button type="submit" class="btn btn-primary full-width">Add Item</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card stat-positive">
+                        <div class="stat-header">
+                            <span class="stat-title">Payments Received</span>
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-value" id="user-total-paid">$0.00</div>
+                        <div class="stat-subtitle">
+                            <i class="fas fa-trending-up"></i>
+                            <span id="user-sales-count">0</span> completed sales
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card stat-negative">
+                        <div class="stat-header">
+                            <span class="stat-title">Outstanding Debts</span>
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="stat-value" id="user-total-unpaid">$0.00</div>
+                        <div class="stat-subtitle">
+                            <i class="fas fa-users"></i>
+                            <span id="user-unpaid-count">0</span> pending payments
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart and List Grid -->
+                <div class="content-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Sales Overview</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="user-sales-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Sales History</h3>
+                        </div>
+                        <div id="user-sales-list" class="sales-list">
+                            <p class="empty-state">No sales recorded yet</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="admin-dashboard" class="screen">
+            <header class="dashboard-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            <h1>Admin Dashboard</h1>
+                            <p>System Overview & Analytics</p>
+                        </div>
+                    </div>
+                    <button id="admin-logout" class="btn btn-outline">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </header>
+
+            <main class="dashboard-main">
+                <!-- Overview Stats -->
+                <div class="admin-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Revenue</span>
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-value" id="admin-total-revenue">Ksh:0.00</div>
+                        <div class="stat-subtitle">All time sales</div>
+                    </div>
+                    
+                    <div class="stat-card stat-positive">
+                        <div class="stat-header">
+                            <span class="stat-title">Payments Received</span>
+                            <i class="fas fa-trending-up"></i>
+                        </div>
+                        <div class="stat-value" id="admin-total-paid">Ksh:0.00</div>
+                        <div class="stat-subtitle">
+                            <span id="admin-sales-count">0</span> completed sales
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card stat-negative">
+                        <div class="stat-header">
+                            <span class="stat-title">Outstanding Debts</span>
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-value" id="admin-total-unpaid">Ksh:0.00</div>
+                        <div class="stat-subtitle">
+                            <span id="admin-unpaid-count">0</span> pending payments
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Total Sales</span>
+                            <i class="fas fa-trending-up"></i>
+                        </div>
+                        <div class="stat-value" id="admin-total-sales">0</div>
+                        <div class="stat-subtitle">All time transactions</div>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts -->
+                <div class="section">
+                    <h2>Analytics Overview</h2>
+                    <div class="admin-charts-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Payment Distribution</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="admin-payment-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Outstanding Debts by User</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="admin-debt-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="card full-width">
+                            <div class="card-header">
+                                <h3>Most Popular Items</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="admin-items-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Sales List -->
+                <div class="section">
+                    <h2>All Sales</h2>
+                    <div class="card">
+                        <div id="admin-sales-list" class="sales-list">
+                            <p class="empty-state">No sales recorded yet</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Chart Detail Modal -->
+        <div id="chart-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">Chart Details</h3>
+                    <button id="modal-close" class="btn-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-summary">
+                        <span>Total Amount:</span>
+                        <span id="modal-amount" class="modal-amount">Ksh:0.00</span>
+                    </div>
+                    <div id="modal-sales-list" class="modal-sales-list">
+                        <!-- Sales details will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
