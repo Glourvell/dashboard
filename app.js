@@ -237,8 +237,30 @@ class SalesDashboard {
 
     renderAdminSalesList(sales) {
         const container = document.getElementById('admin-sales-list');
+        this.calculateAndDisplayDebtsAndExpenses();
+
         this.renderSalesList(container, sales, true);
     }
+    calculateAndDisplayDebtsAndExpenses() {
+    const totalExpenses = this.sales
+        .filter(sale => sale.item === 'Expenses')
+        .reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
+
+    const totalDebt = this.sales
+        .filter(sale => !sale.isPaid && sale.item !== 'Expenses')
+        .reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
+
+    const displayTarget = document.getElementById('admin-total-unpaid');
+    if (displayTarget) {
+        displayTarget.innerHTML = `
+            <strong>Ksh:${totalDebt.toFixed(2)}</strong><br>
+            <small style="font-size: 0.8em; color: gray;">
+                Expenses: Ksh:${totalExpenses.toFixed(2)}
+            </small>
+        `;
+    }
+}
+
 
     renderSalesList(container, sales, showUser) {
         if (sales.length === 0) {
@@ -251,37 +273,42 @@ class SalesDashboard {
         );
 
         container.innerHTML = sortedSales.map(sale => `
-            <div class="sale-item">
-                <div class="sale-main">
-                    <div class="sale-info">
-                        <div class="sale-title">
-                            <strong>${sale.name}</strong>
-                            <span class="badge badge-secondary">${sale.item}</span>
-                            ${showUser ? `<span class="badge badge-outline">${sale.username}</span>` : ''}
-                        </div>
-                        <div class="sale-details">
-                            Qty: ${sale.quantity} • Price: Ksh:${sale.price.toFixed(2)} • 
-                            Total: Ksh:${(sale.quantity * sale.price).toFixed(2)}
-                        </div>
-                        <div class="sale-timestamp">
-                            ${this.formatDate(sale.timestamp)}
-                        </div>
-                    </div>
-                    <div class="sale-actions">
-                        <span class="badge ${sale.isPaid ? 'badge-success' : 'badge-danger'}">
-                            ${sale.isPaid ? 'Paid' : 'Unpaid'}
-                        </span>
-                        <button class="btn ${sale.isPaid ? 'btn-outline' : 'btn-success'}" 
-                                onclick="dashboard.togglePaymentStatus('${sale.id}', ${!sale.isPaid})">
-                            <i class="fas fa-${sale.isPaid ? 'times' : 'check'}"></i>
-                            ${sale.isPaid ? 'Mark Unpaid' : 'Mark Paid'}
-                        </button>
-                    </div>
+    <div class="sale-item" style="${sale.item === 'Expenses' ? 'background-color: #f8d7da;' : ''}">
+        <div class="sale-main">
+            <div class="sale-info">
+                <div class="sale-title">
+                    <strong>${sale.name}</strong>
+                    <span class="badge ${sale.item === 'Expenses' ? 'badge-danger' : 'badge-primary'}">
+                        ${sale.item}
+                    </span>
+                    ${showUser ? `<span class="badge badge-outline">${sale.username}</span>` : ''}
+                </div>
+                <div class="sale-details">
+                    Qty: ${sale.quantity} • Price: Ksh:${sale.price.toFixed(2)} • 
+                    Total: Ksh:${(sale.quantity * sale.price).toFixed(2)}
+                </div>
+                <div class="sale-timestamp">
+                    ${this.formatDate(sale.timestamp)}
                 </div>
             </div>
-        `).join('');
-    }
 
+            ${sale.item !== 'Expenses' ? `
+            <div class="sale-actions">
+                <span class="badge ${sale.isPaid ? 'badge-success' : 'badge-danger'}">
+                    ${sale.isPaid ? 'Paid' : 'Unpaid'}
+                </span>
+                <button class="btn ${sale.isPaid ? 'btn-outline' : 'btn-success'}" 
+                        onclick="dashboard.togglePaymentStatus('${sale.id}', ${!sale.isPaid})">
+                    <i class="fas fa-${sale.isPaid ? 'times' : 'check'}"></i>
+                    ${sale.isPaid ? 'Mark Unpaid' : 'Mark Paid'}
+                </button>
+            </div>` : ''}
+        </div>
+    </div>
+`).join('');
+
+    }
+if 
     togglePaymentStatus(saleId, isPaid) {
         if (this.updatePaymentStatus(saleId, isPaid)) {
             this.showToast('Success', `Payment status updated to ${isPaid ? 'paid' : 'unpaid'}`, 'success');
@@ -657,6 +684,7 @@ class SalesDashboard {
         const formData = new FormData(e.target);
         const name = document.getElementById('item-name').value;
         const item = document.getElementById('item-type').value;
+        
         const quantity = parseInt(document.getElementById('item-quantity').value);
         const price = parseFloat(document.getElementById('item-price').value);
 
