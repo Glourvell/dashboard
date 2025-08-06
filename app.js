@@ -293,16 +293,25 @@ class SalesDashboard {
             </div>
 
             ${sale.item !== 'Expenses' ? `
-            <div class="sale-actions">
-                <span class="badge ${sale.isPaid ? 'badge-success' : 'badge-danger'}">
-                    ${sale.isPaid ? 'Paid' : 'Unpaid'}
-                </span>
-                <button class="btn ${sale.isPaid ? 'btn-outline' : 'btn-success'}" 
-                        onclick="dashboard.togglePaymentStatus('${sale.id}', ${!sale.isPaid})">
-                    <i class="fas fa-${sale.isPaid ? 'times' : 'check'}"></i>
-                    ${sale.isPaid ? 'Mark Unpaid' : 'Mark Paid'}
-                </button>
-            </div>` : ''}
+    <div class="sale-actions">
+        <span class="badge ${sale.isPaid ? 'badge-success' : 'badge-danger'}">
+            ${sale.isPaid ? `Paid (${sale.paymentMethod || ''})` : 'Unpaid'}
+        </span>
+        ${!sale.isPaid ? `
+            <select id="payment-method-${sale.id}" class="payment-method-dropdown" style="margin: 5px 0;">
+                <option value="">--Select--</option>
+                <option value="Cash">Cash</option>
+                <option value="Mpesa">Mpesa</option>
+                <option value="Bill">Bill</option>
+            </select>
+        ` : ''}
+        <button class="btn ${sale.isPaid ? 'btn-outline' : 'btn-success'}" 
+                onclick="dashboard.togglePaymentStatus('${sale.id}', ${!sale.isPaid})">
+            <i class="fas fa-${sale.isPaid ? 'times' : 'check'}"></i>
+            ${sale.isPaid ? 'Mark Unpaid' : 'Mark Paid'}
+        </button>
+    </div>` : ''}
+
         </div>
     </div>
 `).join('');
@@ -310,19 +319,33 @@ class SalesDashboard {
     }
 if 
     togglePaymentStatus(saleId, isPaid) {
-        if (this.updatePaymentStatus(saleId, isPaid)) {
-            this.showToast('Success', `Payment status updated to ${isPaid ? 'paid' : 'unpaid'}`, 'success');
-            
-            // Refresh the appropriate dashboard
-            if (this.currentUser.role === 'admin') {
-                this.loadAdminDashboard();
-            } else {
-                this.loadUserDashboard();
-            }
-        } else {
-            this.showToast('Error', 'Failed to update payment status', 'error');
-        }
+    const paymentMethodSelect = document.getElementById(`payment-method-${saleId}`);
+    const selectedMethod = paymentMethodSelect ? paymentMethodSelect.value : null;
+
+    if (isPaid && (!selectedMethod || selectedMethod === "")) {
+        this.showToast('Error', 'Select a payment method', 'error');
+        return;
     }
+
+    const saleIndex = this.sales.findIndex(sale => sale.id === saleId);
+    if (saleIndex !== -1) {
+        this.sales[saleIndex].isPaid = isPaid;
+        this.sales[saleIndex].paymentMethod = isPaid ? selectedMethod : null;
+        this.saveSales();
+
+        this.showToast('Success', `Payment status updated to ${isPaid ? 'paid' : 'unpaid'}`, 'success');
+
+        // Refresh dashboard
+        if (this.currentUser.role === 'admin') {
+            this.loadAdminDashboard();
+        } else {
+            this.loadUserDashboard();
+        }
+    } else {
+        this.showToast('Error', 'Failed to update payment status', 'error');
+    }
+}
+
 
     // Chart Creation
     createUserSalesChart(sales) {
@@ -657,6 +680,30 @@ if
             this.handleAddItem(e);
         });
 
+
+
+        // mpesa/till/cash
+        document.getElementById('paid-btn').addEventListener('click', () => {
+    this.currentPaymentStatus = true;
+    document.getElementById('paid-btn').classList.add('btn-primary');
+    document.getElementById('paid-btn').classList.remove('btn-outline');
+    document.getElementById('unpaid-btn').classList.add('btn-outline');
+    document.getElementById('unpaid-btn').classList.remove('btn-primary');
+    document.getElementById('payment-method-container').classList.remove('hidden');
+});
+
+document.getElementById('unpaid-btn').addEventListener('click', () => {
+    this.currentPaymentStatus = false;
+    document.getElementById('unpaid-btn').classList.add('btn-primary');
+    document.getElementById('unpaid-btn').classList.remove('btn-outline');
+    document.getElementById('paid-btn').classList.add('btn-outline');
+    document.getElementById('paid-btn').classList.remove('btn-primary');
+    document.getElementById('payment-method-container').classList.add('hidden');
+});
+
+
+
+
         // Modal close
         document.getElementById('modal-close').addEventListener('click', () => this.hideChartModal());
         document.getElementById('chart-modal').addEventListener('click', (e) => {
@@ -684,6 +731,10 @@ if
         const formData = new FormData(e.target);
         const name = document.getElementById('item-name').value;
         const item = document.getElementById('item-type').value;
+        const paymentMethod = this.currentPaymentStatus
+    ? document.getElementById('payment-method-select').value
+    : null;
+
         
         const quantity = parseInt(document.getElementById('item-quantity').value);
         const price = parseFloat(document.getElementById('item-price').value);
@@ -699,6 +750,7 @@ if
             quantity,
             price,
             isPaid: this.currentPaymentStatus,
+            paymentMethod: paymentMethod,
             userId: this.currentUser.id,
             username: this.currentUser.username,
         };
