@@ -667,12 +667,14 @@ if
         });
 
         document.getElementById('unpaid-btn').addEventListener('click', () => {
-            this.currentPaymentStatus = false;
-            document.getElementById('unpaid-btn').classList.add('btn-primary');
-            document.getElementById('unpaid-btn').classList.remove('btn-outline');
-            document.getElementById('paid-btn').classList.add('btn-outline');
-            document.getElementById('paid-btn').classList.remove('btn-primary');
-        });
+    this.currentPaymentStatus = false;
+    document.getElementById('unpaid-btn').classList.add('btn-primary');
+    document.getElementById('unpaid-btn').classList.remove('btn-outline');
+    document.getElementById('paid-btn').classList.add('btn-outline');
+    document.getElementById('paid-btn').classList.remove('btn-primary');
+     // <-- show it!
+});
+
 
         // Item form submission
         document.getElementById('item-form').addEventListener('submit', (e) => {
@@ -698,7 +700,7 @@ document.getElementById('unpaid-btn').addEventListener('click', () => {
     document.getElementById('unpaid-btn').classList.remove('btn-outline');
     document.getElementById('paid-btn').classList.add('btn-outline');
     document.getElementById('paid-btn').classList.remove('btn-primary');
-    document.getElementById('payment-method-container').classList.add('hidden');
+    
 });
 
 
