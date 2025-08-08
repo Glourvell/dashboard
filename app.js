@@ -341,7 +341,7 @@ async addSale(saleData) {
                 <option value="">--Select--</option>
                 <option value="Cash">Cash</option>
                 <option value="Mpesa">Mpesa</option>
-                <option value="Bill">Bill</option>
+                <option value="Bill">Till</option>
             </select>
         ` : ''}
         <button class="btn ${sale.isPaid ? 'btn-outline' : 'btn-success'}" 
