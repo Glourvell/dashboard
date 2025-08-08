@@ -1,10 +1,31 @@
-// Sales Dashboard Application - Pure JavaScript Implementation
+
+
+// firebase configuration files
+const firebaseConfig = {
+    apiKey: "AIzaSyBqo7642CRMWJxd2PPMIHKUfR-SGnFn37I",
+    authDomain: "db-ver2.firebaseapp.com",
+    projectId: "db-ver2",
+    storageBucket: "db-ver2.firebasestorage.app",
+    messagingSenderId: "271485904690",
+    appId: "1:271485904690:web:d60837039f8d599cd7192b",
+    measurementId: "G-NXNMJ17CCF"
+  };
+
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+
+
 
 class SalesDashboard {
     constructor() {
         this.currentUser = null;
         this.users = this.initializeUsers();
-        this.sales = this.loadSales();
+        this.loadSales().then(() => {
+    this.checkAuthState();
+});
+
         this.charts = {};
         this.currentPaymentStatus = false; // false = unpaid, true = paid
         
@@ -128,35 +149,53 @@ class SalesDashboard {
     }
 
     // Sales Data Management
-    loadSales() {
-        return JSON.parse(localStorage.getItem('dashboard_sales') || '[]');
-    }
+    async loadSales() {
+    const snapshot = await db.collection("sales").get();
+    this.sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return this.sales;
+}
 
-    saveSales() {
-        localStorage.setItem('dashboard_sales', JSON.stringify(this.sales));
-    }
 
-    addSale(saleData) {
-        const newSale = {
-            id: `sale-${Date.now()}`,
+    async saveSales(saleData) {
+    try {
+        await db.collection("paymenthistory").add({
             ...saleData,
-            timestamp: new Date().toISOString(),
-        };
-        
-        this.sales.push(newSale);
-        this.saveSales();
-        return newSale;
+            loggedAt: new Date().toISOString()
+        });
+        this.showToast("Success", "Payment history logged", "success");
+    } catch (error) {
+        this.showToast("Error", "Failed to log payment history", "error");
+        console.error("Logging error:", error);
     }
+}
 
-    updatePaymentStatus(saleId, isPaid) {
-        const saleIndex = this.sales.findIndex(sale => sale.id === saleId);
-        if (saleIndex !== -1) {
-            this.sales[saleIndex].isPaid = isPaid;
-            this.saveSales();
-            return true;
-        }
-        return false;
+async addSale(saleData) {
+    try {
+        const timestamp = new Date().toISOString();
+
+        const docRef = await db.collection("sales").add({
+            ...saleData,
+            timestamp
+        });
+
+        const newSale = {
+            id: docRef.id,
+            ...saleData,
+            timestamp
+        };
+
+        this.sales.push(newSale);
+        return newSale;
+
+    } catch (error) {
+        this.showToast("Error", "Failed to save sale to Firebase", "error");
+        console.error("🔥 Firebase addSale error:", error);
+        throw error; // still throw to let caller (like handleAddItem) know
     }
+}
+
+
+    
 
     getSalesByUser(userId) {
         return this.sales.filter(sale => sale.userId === userId);
@@ -306,7 +345,7 @@ class SalesDashboard {
             </select>
         ` : ''}
         <button class="btn ${sale.isPaid ? 'btn-outline' : 'btn-success'}" 
-                onclick="dashboard.togglePaymentStatus('${sale.id}', ${!sale.isPaid})">
+                onclick="dashboard.updatePaymentStatus('${sale.id}', ${!sale.isPaid})">
             <i class="fas fa-${sale.isPaid ? 'times' : 'check'}"></i>
             ${sale.isPaid ? 'Mark Unpaid' : 'Mark Paid'}
         </button>
@@ -318,7 +357,7 @@ class SalesDashboard {
 
     }
 if 
-    togglePaymentStatus(saleId, isPaid) {
+    async updatePaymentStatus(saleId, isPaid) {
     const paymentMethodSelect = document.getElementById(`payment-method-${saleId}`);
     const selectedMethod = paymentMethodSelect ? paymentMethodSelect.value : null;
 
@@ -327,24 +366,28 @@ if
         return;
     }
 
-    const saleIndex = this.sales.findIndex(sale => sale.id === saleId);
-    if (saleIndex !== -1) {
-        this.sales[saleIndex].isPaid = isPaid;
-        this.sales[saleIndex].paymentMethod = isPaid ? selectedMethod : null;
-        this.saveSales();
+    try {
+        await db.collection("sales").doc(saleId).update({
+            isPaid,
+            paymentMethod: isPaid ? selectedMethod : null
+        });
 
         this.showToast('Success', `Payment status updated to ${isPaid ? 'paid' : 'unpaid'}`, 'success');
 
-        // Refresh dashboard
+        await this.saveSales(this.sales[saleIndex]); // after updating payment status
+        await this.loadSales(); // Refresh local copy from Firebase
+
         if (this.currentUser.role === 'admin') {
             this.loadAdminDashboard();
         } else {
             this.loadUserDashboard();
         }
-    } else {
+
+    } catch (error) {
         this.showToast('Error', 'Failed to update payment status', 'error');
     }
 }
+
 
 
     // Chart Creation
@@ -729,7 +772,7 @@ document.getElementById('unpaid-btn').addEventListener('click', () => {
         document.getElementById(`${tab}-tab`).classList.add('active');
     }
 
-    handleAddItem(e) {
+    async handleAddItem(e) {
         const formData = new FormData(e.target);
         const name = document.getElementById('item-name').value;
         const item = document.getElementById('item-type').value;
@@ -758,7 +801,7 @@ document.getElementById('unpaid-btn').addEventListener('click', () => {
         };
 
         try {
-            this.addSale(saleData);
+            await this.addSale(saleData);
             this.showToast('Success', 'Item added successfully!', 'success');
             
             // Reset form
